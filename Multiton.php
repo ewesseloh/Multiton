@@ -1,7 +1,8 @@
 <?php
 
+namespace App\Core;
+
 /**
- *
  * A 'multiton' trait to add a getInstance method
  * to a class that allows using a specific name
  * to access the instance. It is fully compatible
@@ -16,8 +17,10 @@
  * value in lieu of the name, if you wish to use
  * the default.
  *
+ * (slightly modified by ewesseloh)
  *
- *
+ * @link: https://github.com/kafene/Multiton
+ * @version 0.2.0-2016.09.24
  */
 trait Multiton
 {
@@ -30,20 +33,21 @@ trait Multiton
      * Return an instance of the class.
      * @param string $name -
      */
-    public static function getInstance($name = null)
+    public static function instance($name = null)
     {
         $args = array_slice(func_get_args(), 1);
         $name = $name ?: 'default';
         $static = get_called_class();
         $key = sprintf('%s::%s', $static, $name);
-        if(!array_key_exists($key, static::$instances))
-        {
+        if (!isset(static::$instances[$key])) {
             $ref = new \ReflectionClass($static);
-            $ctor = is_callable($ref, '__construct');
-            static::$instances[$key] = (!!count($args) && $ctor)
+            static::$instances[$key] = (
+                $ref->hasMethod('__construct')
                 ? $ref->newInstanceArgs($args)
-                : $ref->newInstanceWithoutConstructor();
+                : $ref->newInstanceWithoutConstructor()
+            );
         }
+
         return static::$instances[$key];
     }
 }
